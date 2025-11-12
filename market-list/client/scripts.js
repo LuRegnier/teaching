@@ -65,6 +65,20 @@ const insertButton = (parent) => {
   parent.appendChild(span);
 }
 
+/*
+  --------------------------------------------------------------------------------------
+  Botão atualizar 
+  --------------------------------------------------------------------------------------
+*/
+const insertEditButton = (parent) => {
+  const btn = document.createElement('button');
+  btn.className = 'edit';
+  btn.textContent = 'Atualizar';
+  btn.title = 'Editar quantidade e valor';
+  btn.style.marginRight = '8px';
+  parent.appendChild(btn);
+}
+
 
 /*
   --------------------------------------------------------------------------------------
@@ -103,6 +117,65 @@ const deleteItem = (item) => {
     .catch((error) => {
       console.error('Error:', error);
     });
+}
+
+/*
+  --------------------------------------------------------------------------------------
+   Atualizar item da lista
+  --------------------------------------------------------------------------------------
+*/
+const putItem = (nome, novaQuantidade, novoValor) => {
+  const formData = new FormData();
+  formData.append('quantidade', novaQuantidade);
+  formData.append('valor', novoValor);
+
+  const url = 'http://127.0.0.1:5000/produto?nome=' + encodeURIComponent(nome);
+  return fetch(url, {
+    method: 'put',
+    body: formData
+  })
+    .then((response) => response.json());
+}
+
+/*
+  --------------------------------------------------------------------------------------
+  Liga os handlers do botão de atualizar
+  --------------------------------------------------------------------------------------
+*/
+const attachEditHandlers = () => {
+  const edits = document.getElementsByClassName('edit');
+  for (let i = 0; i < edits.length; i++) {
+    edits[i].onclick = function () {
+      const tr = this.parentElement.parentElement;
+      const tds = tr.getElementsByTagName('td');
+
+      const nome = tds[0].textContent;
+      const quantidadeAtual = tds[1].textContent;
+      const valorAtual = tds[2].textContent;
+
+      const novaQuantidade = prompt('Nova quantidade:', quantidadeAtual);
+      if (novaQuantidade === null) return; // nesse caso significa que foi cancelado
+
+      const novoValor = prompt('Novo valor:', valorAtual);
+      if (novoValor === null) return; // mesma coisa aqui 
+
+      if (isNaN(novaQuantidade) || isNaN(novoValor)) {
+        alert('Quantidade e valor precisam ser números!');
+        return;
+      }
+      
+      putItem(nome, novaQuantidade, novoValor)
+        .then(() => {
+          tds[1].textContent = novaQuantidade;
+          tds[2].textContent = novoValor;
+          alert('Atualizado!');
+        })
+        .catch((error) => {
+          console.error('Error:', error);
+          alert('Não foi possível atualizar no servidor.');
+        });
+    }
+  }
 }
 
 /*
@@ -146,4 +219,5 @@ const insertList = (nameProduct, quantity, price) => {
   document.getElementById("newPrice").value = "";
 
   removeElement()
+
 }
